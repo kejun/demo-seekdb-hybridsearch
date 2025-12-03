@@ -254,12 +254,17 @@ class IndexManager:
         """
         table_name = self.get_table_name(collection_name)
         index_name = "idx_vec"
-        sql = (
-            f"DROP INDEX IF EXISTS {index_name} ON {table_name}; "
+
+        # 先删除现有索引（如果存在）
+        drop_sql = f"DROP INDEX IF EXISTS {index_name} ON {table_name}"
+        self._execute_sql(drop_sql)  # 忽略删除操作的返回值，因为索引可能不存在
+
+        # 创建新的 HNSW 索引
+        create_sql = (
             f"CREATE INDEX {index_name} ON {table_name}(embedding) "
             f"USING HNSW WITH (m={m}, ef_construction={ef_construction})"
         )
-        return self._execute_sql(sql)
+        return self._execute_sql(create_sql)
 
     def list_indexes(self, collection_name: str) -> List[Dict[str, str]]:
         """
@@ -283,4 +288,3 @@ class IndexManager:
                 return [{'name': row[0], 'column': row[1]} for row in cursor.fetchall()]
         except Exception:
             return []
-
