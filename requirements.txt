@@ -1,2 +1,3 @@
 pandas>=2.0.0
 pyseekdb
+tqdm>=4.66.0

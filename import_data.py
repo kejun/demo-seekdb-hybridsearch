@@ -5,6 +5,7 @@ import time
 sys.modules["pylibseekdb"] = MagicMock()
 
 import pandas as pd
+from tqdm import tqdm
 from database.db_client import DatabaseClient
 from database.index_manager import IndexManager
 from data.processor import DataProcessor
@@ -138,10 +139,20 @@ def main():
     total_batches = (len(ids) + 100 - 1) // 100
     print(f"   - 批次大小: 100")
     print(f"   - 总批次数: {total_batches}")
-    print(f"   - 开始导入...")
+    print(f"   - 开始导入...\n")
+
+    # 创建进度条
+    pbar = tqdm(
+        total=total_batches,
+        desc="导入进度",
+        unit="批次",
+        bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
+    )
 
     def progress_callback(current, total):
-        print(f"   - 进度: {current}/{total}")
+        pbar.update(1)
+        processed_records = min(current * 100, len(ids))
+        pbar.set_postfix_str(f"已处理 {processed_records}/{len(ids)} 条记录")
 
     processor.add_data_to_collection(
         collection,
@@ -152,8 +163,9 @@ def main():
         progress_callback=progress_callback
     )
 
+    pbar.close()
     import_time = time.time() - import_start
-    print(f"数据导入完成!")
+    print(f"\n数据导入完成!")
     print(f"   - 导入耗时: {import_time:.2f} 秒")
     print(f"   - 平均速度: {len(ids) / import_time:.0f} 条/秒")
     print()
