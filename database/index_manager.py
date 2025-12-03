@@ -174,9 +174,15 @@ class IndexManager:
         gen_column = f"gen_{field}"
         gen_expr = f"metadata->'$.{field}'" if field_type.startswith('VARCHAR') else f"metadata->>'$.{field}'"
 
-        # 创建生成列（忽略已存在错误）
-        self._execute_sql(f"ALTER TABLE {table_name} ADD COLUMN {gen_column} {field_type} GENERATED ALWAYS AS ({gen_expr})")
-        # 创建索引
+        # 检查生成列是否已存在
+        if not self.column_exists(collection_name, gen_column):
+            # 尝试创建生成列
+            self._execute_sql(f"ALTER TABLE {table_name} ADD COLUMN {gen_column} {field_type} GENERATED ALWAYS AS ({gen_expr})")
+            # 验证生成列是否创建成功
+            if not self.column_exists(collection_name, gen_column):
+                return False
+
+        # 只有当列存在时才创建索引
         return self._execute_sql(f"CREATE INDEX {index_name} ON {table_name}({gen_column})") or self.index_exists(collection_name, index_name)
 
     def index_exists(self, collection_name: str, index_name: str) -> bool:
@@ -185,6 +191,14 @@ class IndexManager:
             f"SELECT COUNT(*) FROM information_schema.statistics "
             f"WHERE table_schema = DATABASE() AND table_name = '{self.get_table_name(collection_name)}' "
             f"AND index_name = '{index_name}'", fetch=True)
+        return result[0] > 0 if result else False
+
+    def column_exists(self, collection_name: str, column_name: str) -> bool:
+        """检查列是否存在"""
+        result = self._execute_sql(
+            f"SELECT COUNT(*) FROM information_schema.columns "
+            f"WHERE table_schema = DATABASE() AND table_name = '{self.get_table_name(collection_name)}' "
+            f"AND column_name = '{column_name}'", fetch=True)
         return result[0] > 0 if result else False
 
     def list_indexes(self, collection_name: str) -> List[Dict[str, str]]:
