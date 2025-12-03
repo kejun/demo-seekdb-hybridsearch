@@ -170,7 +170,7 @@ def main():
     print(f"   - 平均速度: {len(ids) / import_time:.0f} 条/秒")
     print()
 
-    # 6. 创建索引
+    # 6. 创建元数据索引（通过 pymysql + SQL DDL）
     print(f"\n正在创建元数据索引...")
 
     index_start = time.time()
@@ -178,7 +178,6 @@ def main():
         client=db_client.client,
         host=db_client.host,
         port=db_client.port,
-        tenant=db_client.tenant,
         user=db_client.user,
         password="",
         database=database_name
