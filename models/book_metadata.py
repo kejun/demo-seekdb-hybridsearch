@@ -11,6 +11,36 @@ class ValidationError(Exception):
 
 @dataclass
 class BookMetadata:
+    """
+    书籍元数据数据类，用于存储和验证书籍信息。
+
+    该类在初始化时会自动清理和验证所有字段，确保数据的有效性和一致性。
+    无效数据会被清理为默认值，超出范围的值会抛出 ValidationError 异常。
+
+    Attributes:
+        name (str): 书名，最大长度 500 字符，会自动清理文本
+        author (str): 作者名，最大长度 200 字符，会自动清理文本
+        user_rating (float): 用户评分，范围 0.0-5.0，无效值会抛出异常
+        reviews (int): 评论数量，必须 >= 0，无效值会抛出异常
+        price (float): 价格，必须 >= 0.0，无效值会抛出异常
+        year (int): 出版年份，范围 1900-2100，无效值会抛出异常
+        genre (str): 书籍类型，会自动清理文本
+
+    Raises:
+        ValidationError: 当字段值超出允许范围时抛出
+
+    Example:
+        >>> book = BookMetadata(
+        ...     name="Python编程",
+        ...     author="John Doe",
+        ...     user_rating=4.5,
+        ...     reviews=100,
+        ...     price=29.99,
+        ...     year=2023,
+        ...     genre="Non Fiction"
+        ... )
+        >>> book_dict = book.to_dict()
+    """
     name: str
     author: str
     user_rating: float
