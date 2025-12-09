@@ -1,89 +1,89 @@
-# SeekDB 混合搜索演示
+# SeekDB Hybrid Search Demo
 
-> 使用 SeekDB（AI 原生搜索数据库）实现图书数据的语义搜索与混合搜索功能演示。
+> A demonstration of semantic search and hybrid search capabilities using SeekDB, an AI-native search database, with book data.
 
-## 功能特性
+## Features
 
-- **语义搜索** - 基于向量相似度的智能语义搜索
-- **混合搜索** - 结合向量搜索和元数据过滤的高级搜索
-- **元数据过滤** - 支持评分、类型、年份、价格等多维度过滤
-- **自动向量化** - 使用 SeekDB 内置的嵌入函数自动将文本转换为向量
-- **索引优化** - 支持 HNSW 向量索引和元数据字段索引
+- **Semantic Search** - Intelligent semantic search based on vector similarity
+- **Hybrid Search** - Advanced search combining vector search with metadata filtering
+- **Metadata Filtering** - Multi-dimensional filtering by rating, genre, year, price, and more
+- **Automatic Vectorization** - Automatic text-to-vector conversion using SeekDB's built-in embedding functions
+- **Index Optimization** - Support for HNSW vector indexes and metadata field indexes
 
-## 项目结构
+## Project Structure
 
 ```
 demo-seekdb-hybrid-search/
-├── import_data.py           # 数据导入主程序
-├── hybrid_search.py         # 混合搜索示例
-├── requirements.txt         # Python 依赖
-├── bestsellers_with_categories.csv  # 图书数据集
+├── import_data.py           # Main data import script
+├── hybrid_search.py         # Hybrid search examples
+├── requirements.txt         # Python dependencies
+├── bestsellers_with_categories.csv  # Book dataset
 ├── data/
-│   └── processor.py         # 数据处理器
+│   └── processor.py         # Data processor
 ├── database/
-│   ├── db_client.py         # 数据库客户端封装
-│   └── index_manager.py     # 索引管理器
+│   ├── db_client.py         # Database client wrapper
+│   └── index_manager.py     # Index manager
 ├── models/
-│   └── book_metadata.py     # 数据模型定义
+│   └── book_metadata.py     # Data model definitions
 ├── utils/
-│   └── text_utils.py        # 文本处理工具
+│   └── text_utils.py        # Text processing utilities
 ├── scripts/
-│   ├── create_metadata_indexes.sql  # 索引创建 SQL
-│   ├── search_comparison_test.py    # 搜索对比测试
-│   └── test_tokenizer.py            # 分词器测试
+│   ├── create_metadata_indexes.sql  # Index creation SQL
+│   ├── search_comparison_test.py    # Search comparison tests
+│   └── test_tokenizer.py            # Tokenizer tests
 └── docs/
-    ├── seekdb_features_summary.md   # SeekDB 功能总结
-    └── seekdb_hybrid_search_tutorial.md  # 混合搜索教程
+    ├── seekdb_features_summary.md   # SeekDB features summary
+    └── seekdb_hybrid_search_tutorial.md  # Hybrid search tutorial
 ```
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Requirements
 
 - Python 3.10+
-- SeekDB 数据库服务（默认端口: 2881）
+- SeekDB database service (default port: 2881)
 
-### 安装依赖
+### Installation
 
 ```bash
-# 创建虚拟环境（推荐）
+# Create a virtual environment (recommended)
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
 # venv\Scripts\activate   # Windows
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 导入数据
+### Import Data
 
 ```bash
 python import_data.py
 ```
 
-该脚本会执行以下操作：
-1. 加载 CSV 数据文件
-2. 连接 SeekDB 数据库
-3. 创建向量集合（384 维，余弦距离）
-4. 批量导入图书数据
-5. 创建元数据索引
-6. 执行测试查询
+This script performs the following operations:
+1. Loads CSV data file
+2. Connects to SeekDB database
+3. Creates a vector collection (384 dimensions, cosine distance)
+4. Batch imports book data
+5. Creates metadata indexes
+6. Executes test queries
 
-### 运行混合搜索
+### Run Hybrid Search
 
 ```bash
 python hybrid_search.py
 ```
 
-该脚本演示多种搜索场景：
-- 纯语义搜索
-- 按评分过滤的混合搜索
-- 按类型过滤的混合搜索
-- 复杂条件组合搜索
+This script demonstrates various search scenarios:
+- Pure semantic search
+- Hybrid search filtered by rating
+- Hybrid search filtered by genre
+- Complex conditional search combinations
 
-## 📖 使用示例
+## 📖 Usage Examples
 
-### 语义搜索
+### Semantic Search
 
 ```python
 import pyseekdb
@@ -98,7 +98,7 @@ client = pyseekdb.Client(
 
 collection = client.get_collection("book_info")
 
-# 执行语义搜索
+# Execute semantic search
 results = collection.query(
     query_texts=["self improvement motivation success"],
     n_results=5,
@@ -106,37 +106,37 @@ results = collection.query(
 )
 ```
 
-### 混合搜索
+### Hybrid Search
 
 ```python
-# 定义查询条件
+# Define query conditions
 query_params = {
     "where_document": {"$contains": "inspirational"},
     "where": {"user_rating": {"$gte": 4.5}},
     "n_results": 5
 }
 
-# 定义向量搜索参数
+# Define vector search parameters
 knn_params = {
     "query_texts": ["inspirational life advice"],
     "where": {"user_rating": {"$gte": 4.5}},
     "n_results": 5
 }
 
-# 执行混合搜索
+# Execute hybrid search
 results = collection.hybrid_search(
     query=query_params,
     knn=knn_params,
-    rank={"rrf": {}},  # 使用 RRF 排序融合
+    rank={"rrf": {}},  # Use RRF ranking fusion
     n_results=5,
     include=["metadatas", "documents", "distances"]
 )
 ```
 
-### 复杂条件过滤
+### Complex Conditional Filtering
 
 ```python
-# 组合多个条件：Fiction 类型、2015年后出版、评分 ≥ 4.0
+# Combine multiple conditions: Fiction genre, published after 2015, rating ≥ 4.0
 where_condition = {
     "$and": [
         {"year": {"$gte": 2015}},
@@ -153,25 +153,25 @@ results = collection.hybrid_search(
 )
 ```
 
-## 数据模型
+## Data Model
 
-### 图书元数据字段
+### Book Metadata Fields
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `name` | VARCHAR | 书名 |
-| `author` | VARCHAR | 作者 |
-| `user_rating` | FLOAT | 用户评分 (0.0-5.0) |
-| `reviews` | INT | 评论数量 |
-| `price` | FLOAT | 价格 |
-| `year` | INT | 出版年份 |
-| `genre` | VARCHAR | 书籍类型 |
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | VARCHAR | Book title |
+| `author` | VARCHAR | Author name |
+| `user_rating` | FLOAT | User rating (0.0-5.0) |
+| `reviews` | INT | Number of reviews |
+| `price` | FLOAT | Price |
+| `year` | INT | Publication year |
+| `genre` | VARCHAR | Book genre |
 
-## 🔧 配置说明
+## 🔧 Configuration
 
-### 数据库连接
+### Database Connection
 
-默认配置：
+Default configuration:
 - Host: `127.0.0.1`
 - Port: `2881`
 - Tenant: `sys`
@@ -179,29 +179,29 @@ results = collection.hybrid_search(
 - Database: `demo_books`
 - Collection: `book_info`
 
-### 向量配置
+### Vector Configuration
 
-- 维度: 384
-- 距离度量: 余弦距离 (cosine)
-- 索引类型: HNSW
+- Dimensions: 384
+- Distance metric: Cosine distance
+- Index type: HNSW
 
-## SeekDB 核心功能
+## SeekDB Core Features
 
-本项目使用了 SeekDB 的以下核心功能：
+This project utilizes the following core features of SeekDB:
 
-### AI 原生能力
+### AI-Native Capabilities
 
-- ✅ **自动向量化** - `DefaultEmbeddingFunction` 自动处理文本到向量的转换
-- ✅ **语义搜索** - 基于向量相似度的智能搜索
-- ✅ **混合搜索** - 结合向量搜索和传统 SQL 查询
+- ✅ **Automatic Vectorization** - `DefaultEmbeddingFunction` automatically handles text-to-vector conversion
+- ✅ **Semantic Search** - Intelligent search based on vector similarity
+- ✅ **Hybrid Search** - Combines vector search with traditional SQL queries
 
-### 查询能力
+### Query Capabilities
 
-- ✅ **元数据过滤** - 支持 `$gte`, `$lte`, `$and` 等运算符
-- ✅ **文档内容过滤** - 支持 `$contains` 文本包含搜索
-- ✅ **RRF 排序** - Reciprocal Rank Fusion 智能结果融合
+- ✅ **Metadata Filtering** - Supports operators like `$gte`, `$lte`, `$and`, etc.
+- ✅ **Document Content Filtering** - Supports `$contains` text inclusion search
+- ✅ **RRF Ranking** - Reciprocal Rank Fusion for intelligent result fusion
 
-### 索引能力
+### Index Capabilities
 
-- ✅ **HNSW 向量索引** - 高效的近似最近邻搜索
-- ✅ **元数据索引** - 通过生成列优化元数据查询性能
+- ✅ **HNSW Vector Index** - Efficient approximate nearest neighbor search
+- ✅ **Metadata Indexes** - Optimizes metadata query performance through generated columns
